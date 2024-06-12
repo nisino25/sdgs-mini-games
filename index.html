@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神経衰弱 & ゴミ振り分け Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+
+    <style>
+
+        #app{
+            font-family: 'Noto Sans JP', sans-serif;
+
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .game-title-container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-title-container h1{
+            text-align: center;
+            margin: 0;
+            /* margin-bottom: 10px; */
+            margin-right: 5px;
+
+            display: inline;
+
+            font-size: 20px;
+        }
+        .game-title-container .back-to-menu{
+            color: white;
+            padding: 10px;
+
+            font-size: 13px;
+
+            
+            display: inline;
+            outline: 0;
+            cursor: pointer;
+            border: none;
+            padding: 0 12.5px;
+            /* height: 45px; */
+            line-height: 2.5;
+            border-radius: 8px;
+            font-weight: 400;
+            background: #FD9B63;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgb(0 0 0 / 10%);
+            transition: background 0.2s ease,color 0.2s ease,box-shadow 0.2s ease;
+            :hover{
+                background: rgba(255,255,255,0.9);
+                box-shadow: 0 6px 20px rgb(93 93 93 / 23%);
+            }
+            
+        }
+
+        .game-menu button{
+            display: block;
+            margin: 20px auto;
+            padding: 20px;
+            min-width: 200px;
+        }
+        .inner{
+            width: 500px;
+            margin: auto;
+            max-width: 95vw;
+        }
+
+
+        .manual h4{
+            text-align: center;
+        }
+
+        .manual p{
+            font-weight: bold;
+            font-size: .95em;
+
+            margin-top: 20px !important;
+            margin-bottom: 5px;
+
+            line-height: 1;
+        }
+
+        .manual span{
+            display: block;
+
+            font-size: .9em;
+        }
+
+        .manual button{
+            
+            display: block;
+
+            margin: 30px auto 0;
+            outline: 0;
+            cursor: pointer;
+            border: none;
+            padding: 0 15px;
+            height: 45px;
+            line-height: 45px;
+            border-radius: 7px;
+            font-weight: 400;
+            font-size: 16px;
+            background: #365E32;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgb(0 0 0 / 10%);
+            
+        }
+
+        /* ------------------------------------------ */
+
+        
+
+        #shinkei .grid {
+            max-width: 97.5%;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 5px;
+            justify-content: center;
+        }
+        #shinkei .card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 5/6;
+            display: block;
+            text-align: center;
+            
+            cursor: pointer;
+
+            font-size: 15px;
+        }
+
+        #shinkei .card img {
+            max-width: 100%;
+            display: block;
+            width: 90%;
+            margin: 5px auto;
+        }
+
+        #shinkei .card  span{
+            position: absolute;
+            width: 100%;
+            left: 50%;
+            bottom: 17.5%;
+            transform: translateX(-50%) translateY(50%);
+
+            display: block;
+            /* white-space: nowrap; */
+            font-size: .65em;
+            font-weight: bold;
+        }
+        #shinkei .flipped {
+            background-color: white;
+        }
+
+        #shinkei p{
+            margin-top: 17.5px !important;   
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(-180deg);
+        }
+        
+
+        .card-front,
+        .card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            
+            border: 1px solid #000;
+            
+        }
+        
+        .card-front{
+            
+            background-color: lightgray;
+        }
+
+        .card-back {
+            transform: rotateY(-180deg);
+        }
+
+        /* ------------------------------------------ */
+
+
+        .sorting-container {
+            position: relative;
+            width: 80%;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sorting-card {
+            width: auto;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: lightgray;
+            cursor: pointer;
+            /* position: absolute; */
+            border: 1px solid #000;
+            user-select: none;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .buttons button {
+            /* width: 45px; */
+            /* height: 45px; */
+            padding: 10px;
+        }
+        .top {
+            justify-content: center;
+        }
+        .bottom {
+            justify-content: center;
+        }
+        .message{
+            font-weight: bold;
+        }
+
+
+        /* -------------------------------- */
+                
+        .back {
+        position: relative;
+        /* top: 20px;
+        left: 50%; */
+        width: 500px;
+        aspect-ratio: 1;
+        max-width: 95%;
+        padding: 10px;
+        border-radius: 260px;
+        }
+
+        .back > .pin {
+        position: absolute;
+        left: 50%;
+        top: 10px;
+        border-top: 50px solid #ab1234;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-radius: 20px;
+        transform: translatex(-50%);
+        z-index: 1;
+        }
+
+        .back > .wheel {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        background-color: white;
+        border-radius: 50%;
+        overflow: hidden;
+        transform-origin: center center;
+
+        border: 2px solid black;
+        }
+
+        .wheel-segment {
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        top: 50%;
+        left: 50%;
+        transform-origin: 0 0;
+        border-left: 1px solid black;
+        box-sizing: border-box;
+        }
+
+        .segment-text {
+        position: absolute;
+        left: 0%;
+        bottom: -4%;
+        /* transform: translate(-50%, -50%) rotate(-30deg); */
+        transform-origin: 0 0;
+        font-size: 12px;
+        padding: 5px;
+        box-sizing: border-box;
+
+        width: 40%;
+        text-align: center;
+
+        transform: rotate(-20deg);
+
+        font-size: 10px;
+        }
+
+        .btn-box {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        }
+
+        .start-btn {
+        width: 100px;
+        height: 30px;
+        cursor: pointer;
+        margin-top: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="inner">
+            <div v-if="!chosenGame" class="game-menu">
+                <h1>どのゲームで遊びますか</h1><br>
+                <!-- <span>最終更新: 2024/5/31/20:00</span> -->
+                 <!-- <span>最終更新: 2024/6/11/19:45</span> -->
+                 <span>最終更新: 2024/6/12/19:00</span>
+                <button @click="playGame('shinkei','北海道')">神経衰弱（北海道版）</button>
+                <button @click="playGame('shinkei','京都')" disabled>神経衰弱（京都版）工事中</button>
+                <button @click="chosenGame = 'sorting'">ゴミ振り分けゲーム</button>
+                <button @click="chosenGame = 'roulete'">毎日ルーレット</button>
+            </div>
+
+            <div id="shinkei" v-if="chosenGame == 'shinkei'">
+                <div class="game-title-container">
+                    <h1>神経衰弱({{this.playArea}}版)</h1>
+                    <button @click="chosenGame = null" class='back-to-menu'>メニューに戻る</button>
+                </div>
+                <hr>
+
+                <template v-if="showingManual">
+                    <div class="manual">
+                        <h4>神経衰弱 (しんけん すいじゃく) の遊び方</h4>
+                        
+                        <p>カードをタップして開こう</p>
+                        <span>
+                            まず、画面に表示されているカードの中から1枚をタップして開きます。                        
+                        </span>
+    
+                        <p>王とえさの組み合わせを当てよう</p>
+                        <span>目的は、王とそのえさの組み合わせを見つけること。正しいペアを見つけると、1ポイントがもらえます。</span>
+    
+                        <p>スペシャルカード</p>
+                        <span>破壊カード (赤いカード) を開けてしまうと、1ポイント失います。</span>
+                        <span>回復カードを見つけると、1ポイントがもらえます。</span>
+    
+                        <p>爆弾カードに気をつけて</p>
+                        <span>爆弾カードを開けてしまうと、ゲームは即終了し、ポイントは0になります。</span>
+    
+                        <p>ゲームスタートボタンをクリック</p>
+                        <span>ゲーム開始の1秒間、悪いカードの位置が表示されるので、覚えて避けるようにしましょう。</span>
+                        
+    
+                        <button @click="enableCheating">ゲームスタート</button>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <div class="grid" :style="{ opacity: isGameOver ? '.65' : '1' }">
+                        <div v-for="(card, index) in cards" :key="index" class="card" 
+                             :class="{ flipped: card.flipped || card.matched }" 
+                             @click="canFlip ? flipCard(index) : null">
+
+                             <!-- <template v-if="card.flipped || card.matched">
+                                 <img :src="card.data.imgSrc" alt="">
+                                 <span v-html="card.data.name"></span>
+                             </template> -->
+
+                             <div class="card-inner">
+                                <div class="card-front">
+                                    <!-- Front of the card -->
+                                </div>
+                                <div class="card-back" :style="getCardStyle(card)">
+                                    <!-- Back of the card -->
+                                    <img :src="card.data.imgSrc" alt="">
+                                    <span v-html="card.data.name"></span>
+                                </div>
+                            </div>
+    
+    
+                        </div>
+                    </div>
+
+                    <p v-if="!isGameOver">現在のポイント: {{currentPoint}}</p>
+                    <p v-else><strong style="color: crimson;">ゲームが終了しました。</strong>最終ポイント: {{currentPoint}}</p>
+                </template>
+            </div>
+
+            <div id="sorting" v-if="chosenGame == 'sorting'">
+                <div class="game-title-container">
+                    <h1>ゴミ振り分けゲーム</h1>
+                    <button @click="chosenGame = null" class="back-to-menu">メニューに戻る</button>
+                </div>
+
+                <hr>
+                <div class="sorting-container">
+                    <div v-if="currentTrashItem" class="sorting-card">
+                        {{ currentTrashItem.name }}
+                    </div>
+                </div>
+                <div class="buttons top">
+                    <button @click="sortItem('irregular')">業者</button>
+                </div>
+                <div class="buttons">
+                    <button @click="sortItem('plastic')">プラスチック</button>
+                    <button @click="sortItem('burnable')">燃えるゴミ</button>
+                </div>
+                <div class="buttons bottom">
+                    <button @click="sortItem('bottles')">ビン缶、ペットボトル</button>
+                </div>
+                <!-- <div v-if="message" class="message" >{{ message }}</div> -->
+                <div v-if="message" class="message" :style="{ color: message === '正解!' ? 'green' : 'crimson' }">{{ message }}</div>
+            </div>
+
+            <div id="roulete" v-if="chosenGame == 'roulete'">
+                <div class="game-title-container">
+                    <h1>毎日ルーレット</h1>
+                    <button @click="chosenGame = null" class="back-to-menu">メニューに戻る</button>
+                </div>
+                <hr>
+                
+                <div class="back">
+                    <div class="cover">ルーレット</div>
+                    <div class="pin"></div>
+                    <div class="wheel" ref="wheel">
+                      <div
+                        class="wheel-segment"
+                        v-for="(option, index) in options"
+                        :key="index"
+                        :style="segmentStyle(index)"
+                      >
+                        <div class="segment-text">{{ option }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="btn-box">
+                    <input type="button" value="START" class="start-btn" @click="spinRoulette">
+                  </div>
+                  <p v-if="selectedOption">あなたのタスク: {{ selectedOption }}</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // Create a new Vue instance
+        const app = Vue.createApp({
+            data() {
+                return {
+                    chosenGame: null,
+                    currentPoint: 0,
+                    items: [],
+                    cards: [],
+                    flippedCards: [],
+                    trashItems: [
+                        { name: `新聞紙`, answer: 'burnable', image: 'images/newspaper.jpg?v=2' },
+                        { name: `コーラ`, answer: 'bottles', image: 'images/cola_can.jpg?v=2' },
+                        { name: `段ボール`, answer: 'burnable', image: 'images/cardboard.jpg?v=2' },
+                        { name: `古いテレビ`, answer: 'irregular', image: 'images/old_tv.jpg?v=2' },
+                        { name: `乾電池`, answer: 'irregular', image: 'images/battery.jpg?v=2' },
+                        { name: `ペットボトル`, answer: 'bottles', image: 'images/petbottle.jpg?v=2' },
+                        { name: `コンビニ弁当の容器`, answer: 'plastic', image: 'images/plastic_container.jpg?v=2' },
+                        { name: `アルミ缶`, answer: 'bottles', image: 'images/aluminum_can.jpg?v=2' },
+                        { name: `雑誌`, answer: 'burnable', image: 'images/magazine.jpg?v=2' },
+                        { name: `空のスプレー缶`, answer: 'irregular', image: 'images/spray_can.jpg?v=2' },
+                        { name: `プラスチックおもちゃ`, answer: 'plastic', image: 'images/plastic_toy.jpg?v=2' },
+                        { name: `紙コップ`, answer: 'burnable', image: 'images/paper_cup.jpg?v=2' },
+                        { name: `ガラスのコップ`, answer: 'irregular', image: 'images/glass_cup.jpg?v=2' },
+                        { name: `割れたお皿`, answer: 'irregular', image: 'images/broken_plate.jpg?v=2' },
+                        { name: `古いパソコン`, answer: 'irregular', image: 'images/old_computer.jpg?v=2' },
+                        { name: `紙パック`, answer: 'burnable', image: 'images/paper_pack.jpg?v=2' },
+                        { name: `ビニール袋`, answer: 'plastic', image: 'images/plastic_bag.jpg?v=2' },
+                        { name: `古い携帯電話`, answer: 'irregular', image: 'images/old_phone.jpg?v=2' },
+                        { name: `飲み終わった牛乳パック`, answer: 'burnable', image: 'images/milk_pack.jpg?v=2' },
+                    ],
+                    currentTrashItem: null,
+                    currentIndex: 0,
+                    canFlip: true,
+
+                    isGameOver: false,
+                    showingManual: false,
+
+                    playArea: null,
+                    message: '',
+
+                    options: [
+                        "木を植える",
+                        "プラスチックボトルをリサイクルする",
+                        "シャワーの時間を短くして水を節約する",
+                        "使っていないときに電気を消す",
+                        "学校に歩くか自転車で通う",
+                        "古い服やおもちゃを寄付する",
+                        "公園やビーチを掃除する",
+                        "自分の野菜を育てる",
+                        "新しい文化について学ぶ",
+                        "紙を減らし、再利用し、リサイクルする",
+                        "ペットボトルを潰してリサイクルする"
+                    ],
+                    selectedOption: null,
+                    spinning: false,
+
+
+                };
+            },
+            methods: {
+                sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                },
+                playSound(path) {
+                    const audio = new Audio(path);
+                    audio.play();
+                },
+                
+                playGame(game,area){
+                    this.chosenGame = game
+                    if(!area) return
+
+                    this.playArea = area
+                    if(this.playArea == '北海道'){
+                        this.items = [
+                            {name: `オオワシ` , group: 1, type: 'regular', imgSrc: './assets/shinkei/images/h-1.jpg?v=2'},
+                            {name: `ねずみ<br>（オオワシ）`,group: 1, type: 'regular', imgSrc: './assets/shinkei/images/f-1.jpg?v=2'},
+
+                            {name: `ツル` ,group: 2, type: 'regular', imgSrc: './assets/shinkei/images/h-2.jpg?v=2'},
+                            {name: `みみず<br>（ツル）`,group: 2, type: 'regular', imgSrc: './assets/shinkei/images/f-2.jpg?v=2'},
+
+                            {name: `クマ` ,group: 3, type: 'regular', imgSrc: './assets/shinkei/images/h-3.jpg?v=2'},
+                            {name: `どんぐり<br>（クマ）`,group: 3, type: 'regular', imgSrc: './assets/shinkei/images/f-3.jpg?v=2'},
+
+                            {name: `クワガタ` ,group: 4, type: 'regular', imgSrc: './assets/shinkei/images/h-4.jpg?v=2'},
+                            {name: `じゅえき<br>（クワガタ）`,group: 4, type: 'regular', imgSrc: './assets/shinkei/images/f-4.jpg?v=2'},
+
+                            {name: `イトウ` ,group: 5, type: 'regular', imgSrc: './assets/shinkei/images/h-5.jpg?v=2'},
+                            {name: `どじょう<br>（イトウ）`,group: 5, type: 'regular', imgSrc: './assets/shinkei/images/f-5.jpg?v=2'},
+
+                            {name: `エゾモモンガ` ,group: 6, type: 'regular', imgSrc: './assets/shinkei/images/h-6.jpg?v=2'},
+                            {name: `くさやはっぱ<br>（エゾモモンガ）`,group: 6, type: 'regular', imgSrc: './assets/shinkei/images/f-6.jpg?v=2'},
+
+                            {name: `シマエナガ` ,group: 7, type: 'regular', imgSrc: './assets/shinkei/images/h-7.jpg?v=2'},
+                            {name: `くだもの<br>(シマエナガ)`,group: 7, type: 'regular', imgSrc: './assets/shinkei/images/f-7.jpg?v=2'},
+
+                            {name: `森林伐採` ,group: null, type: 'destructive', imgSrc: './assets/shinkei/images/d-1.jpg?v=2'},
+                            {name: `海水汚染` ,group: null, type: 'destructive', imgSrc: './assets/shinkei/images/d-2.jpg?v=2'},
+                            {name: `動物との<br>交通事故` ,group: null, type: 'destructive', imgSrc: './assets/shinkei/images/d-3.jpg?v=2'},
+                            {name: `隕石到来` ,group: null, type: 'bomb', imgSrc: './assets/shinkei/images/d-4.jpg?v=3'},
+
+                            {name: `エコバッグ` ,group: null, type: 'beneficial', imgSrc: './assets/shinkei/images/b-1.jpg?v=2'},
+                            {name: `省エネ` ,group: null, type: 'beneficial', imgSrc: './assets/shinkei/images/b-2.jpg?v=2'},
+
+
+                            // 'シマフクロウ', 'エゾシカ', 'キタキツネ', 'タンチョウ', 'オオワシ',
+                            // 'シマフクロウ', 'エゾシカ', 'キタキツネ', 'タンチョウ', 'オオワシ',
+                            // 'ヒグマ', 'ホッキョクグマ', 'サケ', 'カニ', 'ウニ',
+                            // 'ヒグマ', 'ホッキョクグマ', 'サケ', 'カニ', 'ウニ'
+                        ]
+                    }else if(this.playArea == '京都'){
+                        // this.items = [
+                        //     {name: `オオワシ` ,group: 1, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `ねずみ（オオワシ）` ,group: 1, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `ツル` ,group: 2, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `みみず（ツル）` ,group: 2, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `クマ` ,group: 3, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `どんぐり（くま）` ,group: 3, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `クワガタ` ,group: 4, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `じゅえき（クワガタ）` ,group: 4, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `イトウ` ,group: 5, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `どじょう（いとう）` ,group: 5, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `エゾモモンガ` ,group: 6, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `くさやはっぱ（えぞももんが）` ,group: 6, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+
+                        //     {name: `シマエナガ` ,group: 7, type: 'regular', imgSrc: './assets/shinkei/images/h-'.jpg},
+                        //     {name: `` ,group: 7, type: 'regular', imgSrc: './assets/shinkei/images/f-'.jpg},
+                        // ]
+                    }
+
+                    this.resetGame()
+                },
+                getCardStyle(card) {
+                    if (!card.matched && card.data.type == 'regular') {
+                        return {};
+                    }
+                    let backgroundColor = '';
+                    let color = ''
+                    switch (card.data?.type) {
+                        case 'regular':
+                            backgroundColor = 'gold';
+                            break;
+                        case 'destructive':
+                            backgroundColor = 'crimson';
+                            color = 'white';
+                            break;
+                        case 'bomb':
+                            backgroundColor = 'black';
+                            color = 'white';
+                            break;
+                        case 'beneficial':
+                            backgroundColor = 'forestgreen';
+                            color = 'white';
+                            break;
+                    }
+                    return { backgroundColor, color };
+                },
+                shuffle(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                    return array;
+                },
+                flipCard(index) {
+                    if(this.isGameOver) return
+                    if (this.cards[index].flipped || this.cards[index].matched) {
+                        return;
+                    }
+
+                    this.playSound('./assets/shinkei/sound/card-flip.wav');
+
+                    if(this.cards[index].data.type !== 'regular'){
+                        this.cards[index].matched = true
+                        if(this.cards[index].data.type == 'destructive'){
+                            this.currentPoint--
+                            // if(this.currentPoint < 0) this.currentPoint = 0
+                        }else if(this.cards[index].data.type == 'beneficial'){
+                            this.currentPoint++
+                        }else if(this.cards[index].data.type == 'bomb'){
+                            this.currentPoint = 0
+                            this.isGameOver = true
+                        }
+                        return
+                    }
+
+                    this.cards[index].flipped = true;
+                    this.flippedCards.push(index);
+
+                    if (this.flippedCards.length === 2) {
+                        this.canFlip = false
+                        this.checkMatch();
+                    }
+                },
+                async checkMatch() {
+                    await this.sleep(1200);
+                    const [firstIndex, secondIndex] = this.flippedCards;
+                    const firstCard = this.cards[firstIndex];
+                    const secondCard = this.cards[secondIndex];
+
+                    if (firstCard.data.group === secondCard.data.group) {
+                        firstCard.matched = true;
+                        secondCard.matched = true;
+                        this.canFlip = true
+                        this.currentPoint+= 1
+
+                        //check if the game should be over now or not
+                        this.checkGameStatus()
+                    } else {
+                        firstCard.flipped = false;
+                        secondCard.flipped = false;
+                        this.canFlip = true
+                        console.log(`here`)
+                        this.playSound('./assets/shinkei/sound/flip-card-away.wav');
+                    }
+                    this.flippedCards = [];
+                },
+                checkGameStatus(){
+                    // Assuming `this.cards` is an array of card objects
+                    let allRegularMatched = this.cards
+                        .filter(card => card.data.type === 'regular')
+                        .every(card => card.matched);
+
+                    if(allRegularMatched) this.isGameOver = true
+                },
+                resetGame() {
+                    this.showingManual = true
+                    this.isGameOver = false
+                    this.canFlip = false
+
+                    this.cards = this.shuffle(this.items.map(name => ({
+                        data: name,
+                        flipped: false,
+                        matched: false
+                    })));
+
+                    this.currentPoint = 0
+
+                    // console.log(this.cards)
+
+                    // this.enableCheating()
+                },
+                async enableCheating(){
+                    this.showingManual = false
+                    await this.sleep(600);
+                    this.playSound('./assets/shinkei/sound/card-flip.wav');
+
+                    for (let i in this.cards) {
+                        let card = this.cards[i]
+                        if (card.data.type === 'destructive' || card.data.type === 'bomb') {
+                            card.flipped = true;
+                            card.matched = true;
+                        }
+                    }
+                    await this.sleep(1200);
+                    this.playSound('./assets/shinkei/sound/flip-card-away.wav');
+
+                    for (let i in this.cards) {
+                        let card = this.cards[i];
+                        // if (card.data.type === 'destructive') {
+                            card.flipped = false;
+                            card.matched = false;
+                        // }
+                        this.canFlip = true
+                    }
+                },
+                sortItem(category) {
+                    if (this.currentTrashItem) {
+                        if (this.currentTrashItem.answer === category) {
+                            this.message = '正解!';
+                        } else {
+                            this.message = '不正解!';
+                        }
+                        this.currentTrashItem.category = category;
+                        this.currentIndex++;
+                        if (this.currentIndex < this.trashItems.length) {
+                            this.currentTrashItem = this.trashItems[this.currentIndex];
+                        } else {
+                            this.currentTrashItem = null;
+                            alert("All items sorted!");
+                        }
+                    }
+                },
+                segmentStyle(index) {
+                    const segmentCount = this.options.length;
+                    const rotation = (index * 360) / segmentCount;
+                    return {
+                        transform: `rotate(${rotation}deg)`,
+                        zIndex: `${segmentCount - index}`,
+                    };
+                },
+                spinRoulette() {
+                    if (this.spinning) return;
+                    this.spinning = true;
+
+                    const wheel = this.$refs.wheel;
+                    const spins = Math.floor(Math.random() * 5) + 5;
+                    const degree = Math.floor(Math.random() * 360) + spins * 360;
+
+                    wheel.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
+                    wheel.style.transform = `rotate(${degree}deg)`;
+
+                    setTimeout(() => {
+                        const selected = (degree + 164.5) % 360; // Adjusted to correct the offset by 180 degrees
+                        const segmentCount = this.options.length;
+                        const segmentDegree = 360 / segmentCount;
+                        const selectedIndex = Math.floor(selected / segmentDegree);
+                        this.selectedOption = this.options[segmentCount - selectedIndex - 1];
+                        this.spinning = false;
+                    }, 4000);
+                }
+            },
+            computed: {
+            },
+            mounted() {
+                // this.resetGame();
+                this.trashItems = this.shuffle(this.trashItems);
+                this.currentTrashItem = this.trashItems[this.currentIndex];
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+
+</html>
